@@ -92,20 +92,6 @@ npm run dev        # http://localhost:5173
 
 `npm run build` produces a static site in `dist/` that you can host anywhere.
 
-### Deploy to GitHub Pages
-
-The repository includes a Pages workflow. In **Settings → Pages**, set the source to **GitHub Actions**. Every push to `main` builds and publishes the app at `https://<user>.github.io/<repo>/`.
-
-## Hotkeys
-
-| Key | Action |
-|---|---|
-| ⌘P · ⌘O · ⌘K · ⌘, | Command palette · quick switcher · address search · settings |
-| E · T · L · F · G | Expand · auto-trace · local graph · fit · graph panel |
-| I · B · O | Obfuscation analysis · bulk import · OSINT toolkit |
-| Shift + click | Paths from the selected address |
-| ⌘Z · ⌘⇧Z | Undo · redo |
-
 ## Project structure
 
 ```
