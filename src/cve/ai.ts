@@ -51,11 +51,7 @@ export async function chat(req: ChatRequest): Promise<void> {
     })
   } catch (e) {
     if (req.signal.aborted) return
-    throw new Error(
-      s.provider === 'ollama' || s.provider === 'lmstudio'
-        ? 'Could not reach the local server. Is it running, and does it allow this origin (CORS)?'
-        : `Request failed (${(e as Error).message}). The provider may block browser requests (CORS).`,
-    )
+    throw networkError(e, s.baseUrl, s.provider)
   }
   if (!res.ok) {
     const text = await res.text().catch(() => '')
@@ -128,14 +124,47 @@ async function chatAnthropic(req: ChatRequest): Promise<void> {
   }
 }
 
+const isLocalProvider = (id: string) => id === 'ollama' || id === 'lmstudio' || id === 'custom'
+
+/** Human-readable reason a browser fetch failed, with the next step to try. */
+function networkError(e: unknown, baseUrl: string, provider: string): Error {
+  const raw = (e as Error)?.message ?? String(e)
+  if (isLocalProvider(provider)) {
+    return new Error(`Cannot reach ${baseUrl || 'the local server'}. Start it, then allow this site's origin in its CORS settings. (${raw})`)
+  }
+  let host = baseUrl
+  try {
+    host = new URL(baseUrl).host
+  } catch {
+    /* keep the raw string */
+  }
+  return new Error(`Cannot reach ${host}. Check the network/VPN, try another provider, or type a model ID manually — the built-in list below still works. (${raw})`)
+}
+
 /** List models from an OpenAI-compatible /models endpoint. */
 export async function listModels(): Promise<string[]> {
   const s = useCveSettings.getState()
   if (s.provider === 'anthropic') return AI_PRESETS[0].models
-  const res = await fetch(`${trimSlash(s.baseUrl)}/models`, { headers: s.apiKey.trim() ? { authorization: `Bearer ${s.apiKey.trim()}` } : {} })
-  if (!res.ok) throw new Error(`${res.status} ${res.statusText}`)
-  const j = await res.json()
-  return ((j.data ?? j.models ?? []) as any[]).map((m) => m.id ?? m.name).filter(Boolean).sort()
+  let res: Response
+  try {
+    res = await fetch(`${trimSlash(s.baseUrl)}/models`, {
+      headers: s.apiKey.trim() ? { authorization: `Bearer ${s.apiKey.trim()}` } : {},
+      signal: AbortSignal.timeout(15000),
+    })
+  } catch (e) {
+    throw networkError(e, s.baseUrl, s.provider)
+  }
+  if (!res.ok) {
+    const text = await res.text().catch(() => '')
+    throw new Error(`${res.status}: ${text.slice(0, 160) || res.statusText}`)
+  }
+  try {
+    const j = await res.json()
+    const ids = ((j.data ?? j.models ?? []) as any[]).map((m) => m.id ?? m.name).filter(Boolean).sort() as string[]
+    return ids.length ? ids : AI_PRESETS.find((p) => p.id === s.provider)?.models ?? []
+  } catch {
+    throw new Error('The provider returned an invalid model list. Type a model ID manually instead.')
+  }
 }
 
 export const QUICK_PROMPTS: { label: string; prompt: string }[] = [

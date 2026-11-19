@@ -16,14 +16,33 @@ export interface ProviderPreset {
   note?: string
 }
 
+// A small built-in catalog per provider. “Load models” refreshes it from the
+// network, but the app stays usable when that request is blocked (CORS, VPN,
+// regional filtering): these IDs are always offered as suggestions.
 export const AI_PRESETS: ProviderPreset[] = [
   { id: 'anthropic', label: 'Anthropic (Claude)', baseUrl: 'https://api.anthropic.com', models: ['claude-opus-5-5', 'claude-sonnet-5-5', 'claude-haiku-5-5', 'claude-fable-5-2'] },
-  { id: 'openai', label: 'OpenAI', baseUrl: 'https://api.openai.com/v1', models: [] },
-  { id: 'openrouter', label: 'OpenRouter (hundreds of models)', baseUrl: 'https://openrouter.ai/api/v1', models: [], note: 'One key for open-weight and commercial models. Use “Load models” to browse.' },
-  { id: 'groq', label: 'Groq', baseUrl: 'https://api.groq.com/openai/v1', models: [] },
+  { id: 'openai', label: 'OpenAI', baseUrl: 'https://api.openai.com/v1', models: ['gpt-6.2-astra', 'gpt-6.2-sol', 'gpt-5.4'] },
+  {
+    id: 'openrouter',
+    label: 'OpenRouter (hundreds of models)',
+    baseUrl: 'https://openrouter.ai/api/v1',
+    models: [
+      'openai/gpt-6.2-astra',
+      'anthropic/claude-fable-5.2',
+      'google/gemini-4-neon',
+      'deepseek/deepseek-v4.1-flash-1017',
+      'qwen/qwen4-max',
+      'deepseek/deepseek-v4.1-flash-1017:free',
+      'google/gemma-4-31b-it:free',
+      'nvidia/nemotron-3-nano-omni-30b-a3b-reasoning:free',
+      'inclusionai/ling-3.2-flash:free',
+    ],
+    note: 'One key for open-weight and commercial models. “Load models” fetches the full catalog; the built-in list works offline too.',
+  },
+  { id: 'groq', label: 'Groq', baseUrl: 'https://api.groq.com/openai/v1', models: ['llama-3.3-70b-versatile', 'openai/gpt-oss-120b', 'qwen/qwen3-32b'] },
   { id: 'deepseek', label: 'DeepSeek', baseUrl: 'https://api.deepseek.com/v1', models: ['deepseek-chat', 'deepseek-reasoner'] },
-  { id: 'mistral', label: 'Mistral', baseUrl: 'https://api.mistral.ai/v1', models: [] },
-  { id: 'together', label: 'Together AI', baseUrl: 'https://api.together.xyz/v1', models: [] },
+  { id: 'mistral', label: 'Mistral', baseUrl: 'https://api.mistral.ai/v1', models: ['mistral-large-latest', 'mistral-small-latest', 'codestral-latest'] },
+  { id: 'together', label: 'Together AI', baseUrl: 'https://api.together.xyz/v1', models: ['meta-llama/Llama-3.3-70B-Instruct-Turbo', 'deepseek-ai/DeepSeek-V3'] },
   {
     id: 'ollama',
     label: 'Ollama (local)',

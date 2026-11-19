@@ -160,21 +160,27 @@ function Connection() {
   const preset = AI_PRESETS.find((p) => p.id === s.provider)!
   const [models, setModels] = useState<string[]>(preset.models)
   const [loading, setLoading] = useState(false)
+  const [loadError, setLoadError] = useState('')
 
   const pick = (id: AiProvider) => {
     const p = AI_PRESETS.find((x) => x.id === id)!
     s.set({ provider: id, baseUrl: p.baseUrl, model: p.models[0] ?? '' })
     setModels(p.models)
+    setLoadError('')
   }
   const load = async () => {
     setLoading(true)
+    setLoadError('')
     try {
       const m = await listModels()
       setModels(m)
       if (!s.model && m[0]) s.set({ model: m[0] })
       toast(`${m.length} models`, 'success')
     } catch (e) {
-      toast(`Could not list models: ${(e as Error).message}`)
+      // Keep the built-in suggestions so the field stays usable offline.
+      const msg = (e as Error).message
+      setLoadError(msg)
+      toast(`Could not list models — type one manually instead`)
     } finally {
       setLoading(false)
     }
@@ -210,10 +216,27 @@ function Connection() {
                 <option key={m} value={m} />
               ))}
             </datalist>
-            <button className="mod-ghost sm" onClick={() => void load()} disabled={loading} type="button">
+            <button className="mod-ghost sm" onClick={() => void load()} disabled={loading} type="button" title="Fetch the full catalog from the provider">
               {loading ? <Loader2 size={12} className="spin" /> : null} Load models
             </button>
+            <button
+              className="mod-ghost sm"
+              onClick={() => {
+                setModels(preset.models)
+                setLoadError('')
+              }}
+              disabled={loading}
+              type="button"
+              title="Restore the built-in model suggestions"
+            >
+              Built-in
+            </button>
           </div>
+          {loadError ? (
+            <div className="model-error small">
+              <b>Model catalog unavailable.</b> {loadError} You can still type a model ID in the field above — the built-in suggestions are shown on focus.
+            </div>
+          ) : null}
         </label>
         <label>
           <span>CVEs sent as context</span>

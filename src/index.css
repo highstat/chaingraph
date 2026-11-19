@@ -721,6 +721,8 @@ input[type='range'].full { width: 100%; accent-color: var(--accent); }
 .conn-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 10px 14px; }
 .conn-grid label { display: flex; flex-direction: column; gap: 4px; font-size: 0.88em; color: var(--text2); }
 .conn-grid input, .conn-grid select { width: 100%; }
+.model-error { margin-top: 6px; padding: 6px 9px; border-radius: var(--radius-s); background: color-mix(in srgb, var(--warn) 10%, transparent); color: var(--text2); line-height: 1.4; }
+.model-error b { color: var(--warn); }
 .sys-prompt { width: 100%; margin: 6px 0; font-size: 0.85em; resize: vertical; padding: 8px; }
 .ack { display: flex; gap: 8px; align-items: flex-start; margin-top: 10px; font-size: 0.86em; color: var(--text2); line-height: 1.45; }
 .ack input { margin-top: 3px; }
