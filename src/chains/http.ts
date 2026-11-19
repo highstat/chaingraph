@@ -11,6 +11,8 @@ const MIN_GAP_MS: Record<string, number> = {
   'horizon.stellar.org': 150,
   'apilist.tronscanapi.com': 400,
   'api.coingecko.com': 1500,
+  'cve.circl.lu': 400, // Vulnerability-Lookup rate-limits bursts
+  'api.github.com': 1000,
 }
 const DEFAULT_GAP = 200
 const nextSlot = new Map<string, number>()

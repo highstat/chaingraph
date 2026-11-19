@@ -61,6 +61,20 @@ Commercial chain-analysis suites (Chainalysis Reactor, TRM, Arkham, Breadcrumbs)
 - **GEOINT**: satellite maps, coordinate formats (decimal, DMS, MGRS, map links), sun and shadow chronolocation, OpenStreetMap features around a point, measurements, KML/GeoJSON pins
 - **Image forensics**: EXIF and GPS, error level analysis, reverse image search. Files never leave your machine.
 
+### CVE & attack surface (`/cve`)
+- **Surface scan** of a domain, IP, range (up to /24) or ASN: DNS, subdomains from certificate transparency, every resolved IP with open ports, software (CPE), tags, ASN and location
+- **Deep IP intel**: registered owner and country (whois for every RIR), geolocated city and coordinates, network name and range, RPKI route validity, reverse DNS, abuse contact, FireHOL / Spamhaus DROP / C2 / Tor blocklists
+- **Charts**: exposure gauge, CVE priority breakdown, CVSS × EPSS risk matrix with KEV highlighted, CVEs by year, open ports, findings by category, countries (registered vs located), networks and a server map
+- **CVE enrichment**: NVD by CPE, FIRST EPSS (with a 30-day trend), CISA KEV, CISA SSVC (exploitation, automatable, impact), Nuclei template availability and public PoC counts. CVEs are ranked by a priority that combines CVSS, EPSS, KEV and SSVC, and are labeled as version-inferred
+- **Findings** with reasons and confidence: risky exposed services (RDP, SMB, databases, Docker, ICS…), end-of-life software, KEV hits, missing HTTP security headers, SPF/DMARC, dangling CNAMEs. Overall exposure score and grade
+- **Infrastructure graph** linking domains, IPs, networks, software and CVEs
+- **CVE intelligence**: look up any CVE or search by keyword, product and version, or CPE, plus the latest CISA KEV additions
+- **Stack audit**: paste `package-lock.json`, `requirements.txt`, `go.mod`, `composer.lock`, `Cargo.lock` or a product list. Packages are checked against OSV.dev and products against NVD
+- **AI analyst** with your own key: Anthropic, OpenAI, OpenRouter, Groq, DeepSeek, Mistral, Together, local Ollama or LM Studio, or any OpenAI-compatible server. Includes threat assessment, remediation plan and executive summary presets
+- **MCP server** (`mcp/`): the same engine as tools for Claude Desktop, Claude Code, Cursor, LM Studio and other MCP clients. `npm run mcp:build`, then see [mcp/README.md](mcp/README.md)
+- **Radar** re-scans watched targets on a schedule and logs new hosts, ports, CVEs, KEV entries and subdomains
+- Passive only: no packet is sent to the target. Everything runs in the browser, and keys stay in localStorage
+
 ### Workspace
 - Vault of cases, tabs, sidebars, command palette (⌘P), quick switcher (⌘O), undo and redo
 - 9 themes including AMOLED Black, custom accent color; the logo and favicon follow the accent
@@ -101,6 +115,8 @@ src/analysis.ts    clustering, risk and exposure, pathfinding, behavior
 src/entities.ts    attribution rules and verified labels
 src/actions.ts     expand, auto-trace, peel chains, funder lookup, watchlist
 src/report.ts      Markdown report, Obsidian vault, CSV
+src/cve/           attack-surface scan, CVE sources (NVD, EPSS, KEV, OSV…), IP intel, rules, AI, Radar
+mcp/               MCP server for AI clients (same engine, Node + stdio)
 src/components/    graph, inspector, sidebars, OSINT toolkit, settings
 video/             Remotion source of the demo video
 docs/              methodology and media
@@ -112,6 +128,7 @@ The demo video is built with [Remotion](https://www.remotion.dev): `cd video && 
 
 - Attribution and risk scores are heuristic leads, not proof. Totals reflect loaded history; USD uses current prices.
 - ChainGraph maps flows between addresses. It does not identify owners: identity can only be established through the relevant service, such as exchange KYC, via lawful process.
+- The CVE workspace is passive and is meant for systems you own or are authorized to assess. Banner-inferred CVEs can be false positives when distributions backport fixes. AI mode sends the scan summary to the provider you configure.
 - The OSINT toolkit uses public sources only. People-search brokers and breach databases are intentionally not integrated.
 - Use it for investigations of fraud and financial crime, journalism, compliance and research. Do not use it to stalk or harass people. See [SECURITY.md](SECURITY.md).
 

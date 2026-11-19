@@ -36,6 +36,7 @@ export const HOTKEYS: [string, string][] = [
   ['I', 'Obfuscation analysis panel'],
   ['B', 'Bulk import addresses'],
   ['O', 'Open / close the OSINT Toolkit'],
+  ['C', 'Open / close CVE & attack surface (/cve)'],
   ['Mod+\\', 'Toggle left sidebar'],
   ['Mod+Shift+\\', 'Toggle right sidebar'],
   ['E', 'Expand selected address'],

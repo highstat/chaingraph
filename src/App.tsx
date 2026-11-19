@@ -1,5 +1,5 @@
 import {
-  ChartNoAxesGantt, Command, Download, FileText, FolderArchive, HelpCircle, Image, ListPlus, PanelLeft, PanelRight, Plus, Search, Settings, ShieldAlert,
+  Bug, ChartNoAxesGantt, Command, Download, FileText, FolderArchive, HelpCircle, Image, ListPlus, PanelLeft, PanelRight, Plus, Search, Settings, ShieldAlert,
   SlidersHorizontal, Radar, Waypoints, Workflow, X,
 } from 'lucide-react'
 import { lazy, Suspense, useEffect, useMemo, useRef, useState } from 'react'
@@ -22,12 +22,16 @@ import { download } from './format'
 import { patchNode } from './model'
 import { markdownReport, obsidianVault } from './report'
 import { useSettings } from './settings'
-import { hydrateCases, redo, select, toast, undo, useCases, useUI } from './store'
+import { hydrateCases, redo, select, toast, undo, useCases, useUI, viewFromLocation } from './store'
 import { applyTheme, themeById } from './themes'
 import type { ChainId } from './types'
 
 // The OSINT toolkit (maps, phone metadata, EXIF) loads on first open.
 const OsintView = lazy(() => import('./components/osint/OsintView').then((m) => ({ default: m.OsintView })))
+// The CVE / attack-surface workspace (/cve) loads on first open too.
+const CveView = lazy(() => import('./components/cve/CveView').then((m) => ({ default: m.CveView })))
+
+const BASE = import.meta.env.BASE_URL
 
 const EXAMPLES = [
   { label: 'vitalik.eth', addr: 'vitalik.eth' },
@@ -65,6 +69,36 @@ function Workspace() {
     if (import.meta.env.DEV) (window as unknown as { __cg: unknown }).__cg = d // debugging aid in dev builds only
   })
 
+  // Route <-> view sync: /cve, /osint, / (and legacy #/cve).
+  useEffect(() => {
+    const apply = () => {
+      const v = viewFromLocation()
+      if (v && v !== useUI.getState().view) useUI.getState().set({ view: v })
+    }
+    apply()
+    window.addEventListener('popstate', apply)
+    window.addEventListener('hashchange', apply)
+    return () => {
+      window.removeEventListener('popstate', apply)
+      window.removeEventListener('hashchange', apply)
+    }
+  }, [])
+  useEffect(() => {
+    const path = BASE + (ui.view === 'graph' ? '' : ui.view)
+    if (location.pathname !== path || location.hash) history.pushState(null, '', path)
+  }, [ui.view])
+
+  // Radar (CVE monitoring) runs in the background only when targets are watched.
+  useEffect(() => {
+    const tick = () => {
+      if (!/"target"/.test(localStorage.getItem('chaingraph-cve-radar') ?? '')) return
+      void import('./cve/state').then((m) => m.pollRadar())
+    }
+    const first = setTimeout(tick, 15000)
+    const t = setInterval(tick, 60000)
+    return () => (clearTimeout(first), clearInterval(t))
+  }, [])
+
   // Watchlist polling.
   useEffect(() => {
     const t = setInterval(() => void pollWatchlist(), s.watchIntervalMin * 60000)
@@ -100,6 +134,7 @@ function Workspace() {
       else if (k === 'i') st.set({ rightOpen: true, rightPane: 'insights' })
       else if (k === 'b') st.set({ modal: 'bulk' })
       else if (k === 'o') st.set({ view: st.view === 'osint' ? 'graph' : 'osint' })
+      else if (k === 'c') st.set({ view: st.view === 'cve' ? 'graph' : 'cve' })
     }
     window.addEventListener('keydown', h)
     return () => window.removeEventListener('keydown', h)
@@ -162,6 +197,7 @@ function Workspace() {
               <Logo size={24} />
             </div>
             <IconBtn title="OSINT Toolkit (O)" active={ui.view === 'osint'} onClick={() => ui.set({ view: ui.view === 'osint' ? 'graph' : 'osint' })}><Radar size={18} /></IconBtn>
+            <IconBtn title="CVE & attack surface (C)" active={ui.view === 'cve'} onClick={() => ui.set({ view: ui.view === 'cve' ? 'graph' : 'cve' })}><Bug size={18} /></IconBtn>
             <IconBtn title="Quick switcher (⌘O)" onClick={() => ui.set({ modal: 'switcher' })}><Search size={18} /></IconBtn>
             <IconBtn title="Command palette (⌘P)" onClick={() => ui.set({ modal: 'palette' })}><Command size={18} /></IconBtn>
             <IconBtn title="Graph settings (G)" active={ui.graphControlsOpen} onClick={() => ui.set({ graphControlsOpen: !ui.graphControlsOpen })}><SlidersHorizontal size={18} /></IconBtn>
@@ -179,13 +215,17 @@ function Workspace() {
 
         {ui.leftOpen && ui.view === 'graph' && <LeftSidebar />}
 
-        <main className={'workspace-main' + (ui.view === 'osint' ? ' osint-mode' : '')}>
+        <main className={'workspace-main' + (ui.view !== 'graph' ? ' osint-mode' : '')}>
           <div className="tab-bar">
             <IconBtn title="Toggle left sidebar (⌘\)" onClick={() => ui.set({ leftOpen: !ui.leftOpen })}><PanelLeft size={16} /></IconBtn>
             <div className="tabs-row">
               <div className={'ws-tab pinned' + (ui.view === 'osint' ? ' is-active' : '')} onClick={() => ui.set({ view: 'osint' })} title="OSINT Toolkit (O)">
                 <Radar size={13} />
                 <span className="ellipsis">OSINT Toolkit</span>
+              </div>
+              <div className={'ws-tab pinned' + (ui.view === 'cve' ? ' is-active' : '')} onClick={() => ui.set({ view: 'cve' })} title="CVE & attack surface (C)">
+                <Bug size={13} />
+                <span className="ellipsis">CVE & Security</span>
               </div>
               {cases.tabs.map((id) => {
                 const t = cases.cases[id]
@@ -325,6 +365,11 @@ function Workspace() {
           {ui.view === 'osint' && (
             <Suspense fallback={<div className="boot">Loading OSINT toolkit…</div>}>
               <OsintView />
+            </Suspense>
+          )}
+          {ui.view === 'cve' && (
+            <Suspense fallback={<div className="boot">Loading CVE workspace…</div>}>
+              <CveView />
             </Suspense>
           )}
           {ui.timelineOpen && ui.view === 'graph' && <Timeline />}

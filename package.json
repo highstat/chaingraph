@@ -34,9 +34,13 @@
     "build": "tsc -b && vite build",
     "lint": "oxlint",
     "preview": "vite preview",
-    "typecheck": "tsc -b"
+    "typecheck": "tsc -b",
+    "mcp:build": "vite build --config mcp/vite.config.ts",
+    "mcp": "node mcp/dist/chaingraph-mcp.mjs"
   },
   "dependencies": {
+    "@anthropic-ai/sdk": "^1.10.0",
+    "@modelcontextprotocol/sdk": "^1.32.2",
     "exifr": "^7.1.3",
     "force-graph": "^1.52.0",
     "idb-keyval": "^6.3.0",
@@ -47,6 +51,7 @@
     "react": "^19.3.1",
     "react-dom": "^19.3.1",
     "suncalc": "^2.1.4",
+    "zod": "^4.6.7",
     "zustand": "^5.1.0"
   },
   "devDependencies": {
@@ -58,5 +63,8 @@
     "oxlint": "^1.90.0",
     "typescript": "~7.0.2",
     "vite": "^8.3.6"
+  },
+  "bin": {
+    "chaingraph-mcp": "mcp/dist/chaingraph-mcp.mjs"
   }
 }

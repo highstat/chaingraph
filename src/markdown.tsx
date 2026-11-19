@@ -36,7 +36,7 @@ export function renderNote(src: string, onLink: (target: string) => void): React
 
 const TOKEN = /(\[\[[^\]]+\]\]|\*\*[^*]+\*\*|\*[^*]+\*|`[^`]+`|\[[^\]]+\]\(https?:\/\/[^)\s]+\))/g
 
-function inline(text: string, onLink: (t: string) => void): ReactNode[] {
+export function inline(text: string, onLink: (t: string) => void): ReactNode[] {
   return text.split(TOKEN).map((part, i) => {
     if (!part) return null
     if (part.startsWith('[[')) {

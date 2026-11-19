@@ -157,6 +157,15 @@ export interface Toast {
 export type LeftPane = 'files' | 'search' | 'starred' | 'tags'
 export type RightPane = 'inspector' | 'insights' | 'overview' | 'paths' | 'watch'
 export type OsintTab = 'phone' | 'username' | 'email' | 'geo' | 'image' | 'domain' | 'ip' | 'dork' | 'directory'
+export type View = 'graph' | 'osint' | 'cve'
+
+/** /cve and /osint (or #/cve) open those views directly; null = unknown path. */
+export function viewFromLocation(): View | null {
+  const base = import.meta.env.BASE_URL
+  const rest = location.pathname.startsWith(base) ? location.pathname.slice(base.length) : location.pathname
+  const key = (location.hash.match(/^#\/(\w+)/)?.[1] ?? rest.replace(/^\/+|\/+$/g, '')).toLowerCase()
+  return key === 'cve' || key === 'osint' ? key : key === '' || key === 'graph' ? 'graph' : null
+}
 export type Modal = null | 'settings' | 'palette' | 'switcher' | 'help' | 'bulk'
 
 interface UIStore {
@@ -182,7 +191,7 @@ interface UIStore {
   showHidden: boolean
   spotlight: { nodes: string[]; edges: string[]; id: string } | null
   linkFrom: string | null
-  view: 'graph' | 'osint'
+  view: View
   osintTab: OsintTab
   osintSeed: string
   set: (p: Partial<UIStore>) => void
@@ -211,7 +220,7 @@ export const useUI = create<UIStore>()((set) => ({
   showHidden: false,
   spotlight: null,
   linkFrom: null,
-  view: 'graph',
+  view: viewFromLocation() ?? 'graph',
   osintTab: 'phone',
   osintSeed: '',
   set: (p) => set(p),

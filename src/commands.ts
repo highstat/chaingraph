@@ -48,6 +48,21 @@ export function buildCommands(d: Derived): Command[] {
       name: `OSINT: ${{ phone: 'Phone number lookup', username: 'Username search', email: 'Email investigation', geo: 'GEOINT map', image: 'Image forensics (EXIF, ELA)', domain: 'Domain & DNS', ip: 'IP address', dork: 'Search operator builder', directory: 'Tool directory' }[t]}`,
       run: () => ui.set({ view: 'osint', osintTab: t, osintSeed: '' }),
     })),
+    { id: 'cve', name: 'CVE: Open attack surface & CVE workspace', hotkey: 'C', run: () => ui.set({ view: 'cve' }) },
+    ...(
+      [
+        ['scan', 'Surface scan (domain, IP, range, ASN)'],
+        ['graph', 'Infrastructure graph'],
+        ['intel', 'CVE intelligence & KEV feed'],
+        ['stack', 'Stack audit (dependencies, products)'],
+        ['ai', 'AI analyst'],
+        ['radar', 'Radar monitoring'],
+      ] as const
+    ).map(([t, label]) => ({
+      id: `cve-${t}`,
+      name: `CVE: ${label}`,
+      run: () => (ui.set({ view: 'cve' }), void import('./cve/state').then((m) => m.useCve.setState({ tab: t }))),
+    })),
     { id: 'bulk', name: 'Case: Bulk import addresses', hotkey: 'B', run: () => ui.set({ modal: 'bulk' }) },
     { id: 'undo', name: 'Edit: Undo', hotkey: 'Mod+Z', run: undo },
     { id: 'redo', name: 'Edit: Redo', hotkey: 'Mod+Shift+Z', run: redo },
